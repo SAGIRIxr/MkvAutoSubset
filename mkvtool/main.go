@@ -10,8 +10,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/MkvAutoSubset/MkvAutoSubset/mkvlib"
 	"github.com/fatih/color"
+	"github.com/guowanghushifu/MkvAutoSubset/mkvlib"
 	"github.com/mattn/go-colorable"
 	"github.com/spf13/cobra"
 )
@@ -47,7 +47,7 @@ func main() {
 			if _os == "windows" {
 				ext = ".exe"
 			}
-			color.Green("New version available: %s\nDownload link: https://github.com/MkvAutoSubset/MkvAutoSubset/releases/download/%s/mkvtool-%s-%s%s", latestTag, latestTag, _os, arch, ext)
+			color.Green("New version available: %s\nDownload link: https://github.com/guowanghushifu/MkvAutoSubset/releases/download/%s/mkvtool-%s-%s%s", latestTag, latestTag, _os, arch, ext)
 		}
 		os.Exit(ec)
 	}()
@@ -419,7 +419,7 @@ func cacheCmd() *cobra.Command {
 }
 
 func getLatestTag() {
-	if resp, err := http.DefaultClient.Get("https://api.github.com/repos/MkvAutoSubset/MkvAutoSubset/releases/latest"); err == nil {
+	if resp, err := http.DefaultClient.Get("https://api.github.com/repos/guowanghushifu/MkvAutoSubset/releases/latest"); err == nil {
 		if data, err := io.ReadAll(resp.Body); err == nil {
 			reg, _ := regexp.Compile(`"tag_name":"([^"]+)"`)
 			arr := reg.FindStringSubmatch(string(data))

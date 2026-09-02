@@ -2,10 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/MkvAutoSubset/MkvAutoSubset/mkvlib"
-	"github.com/fatih/color"
-	"github.com/mattn/go-colorable"
-	"github.com/spf13/cobra"
 	"io"
 	"net/http"
 	"os"
@@ -13,10 +9,15 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+
+	"github.com/MkvAutoSubset/MkvAutoSubset/mkvlib"
+	"github.com/fatih/color"
+	"github.com/mattn/go-colorable"
+	"github.com/spf13/cobra"
 )
 
 const appName = "MKV Tool"
-const appVer = "v5.6.4"
+const appVer = "v5.6.5"
 const tTitle = appName + " " + appVer
 
 var appFN = fmt.Sprintf("%s %s %s/%s", appName, appVer, runtime.GOOS, runtime.GOARCH)

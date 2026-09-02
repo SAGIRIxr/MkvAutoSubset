@@ -17,7 +17,7 @@ int main(void)
     assert(pixel_count == 2073600);
     assert(rgba_buffer_size == 8294432);
 
-    assert(!calculate_image_buffer_sizes(65535, 8193,
+    assert(!calculate_image_buffer_sizes(65535, 4096,
                                          &pixel_count, &rgba_buffer_size));
     assert(!calculate_image_buffer_sizes(7, 1080,
                                          &pixel_count, &rgba_buffer_size));

@@ -141,7 +141,10 @@ bool calculate_image_buffer_sizes(int width, int height,
     }
 
     pixels = (size_t)width * (size_t)height;
-    if (pixels > INT_MAX / 4)
+    /* sup.c calculates decode timestamps as width * height * 9 + 3199
+     * using int arithmetic, so reject dimensions that cannot be processed
+     * safely by that downstream code. */
+    if (pixels > ((size_t)INT_MAX - 3199u) / 9u)
         return false;
 
     *pixel_count = pixels;

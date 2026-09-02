@@ -1,9 +1,9 @@
-module github.com/MkvAutoSubset/MkvAutoSubset/mkvtool
+module github.com/guowanghushifu/MkvAutoSubset/mkvtool
 
 go 1.20
 
 require (
-	github.com/MkvAutoSubset/MkvAutoSubset/mkvlib v0.0.0-20240625005603-ed9d0f601660
+	github.com/guowanghushifu/MkvAutoSubset/mkvlib v0.0.0-20240625005603-ed9d0f601660
 	github.com/fatih/color v1.17.0
 	github.com/mattn/go-colorable v0.1.13
 	github.com/spf13/cobra v1.8.1
@@ -20,4 +20,4 @@ require (
 	golang.org/x/text v0.12.0 // indirect
 )
 
-replace github.com/MkvAutoSubset/MkvAutoSubset/mkvlib => ../mkvlib
+replace github.com/guowanghushifu/MkvAutoSubset/mkvlib => ../mkvlib

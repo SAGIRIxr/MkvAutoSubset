@@ -22,7 +22,7 @@ rm -rf /dist/* > /dev/null
 
 export CGO_ENABLED=1
 
-wget -q -O src.zip https://github.com/MkvAutoSubset/MkvAutoSubset/archive/refs/heads/next.zip > /dev/null
+wget -q -O src.zip https://github.com/guowanghushifu/MkvAutoSubset/archive/refs/heads/next.zip > /dev/null
 unzip -n -d /package src.zip > /dev/null
 rm src.zip
 

@@ -15,7 +15,7 @@ RUN curl -O https://dl.google.com/go/go1.23.1.linux-amd64.tar.gz && \
     tar zxf go*
 ENV PATH=${PATH}:/go/bin
 
-RUN git clone https://github.com/MkvAutoSubset/MkvAutoSubset -b next && \
+RUN git clone https://github.com/guowanghushifu/MkvAutoSubset -b next && \
     cd /MkvAutoSubset/mkvtool && \
     go mod tidy && \
     PATH_ROOT="${VCPKG_ROOT}/installed/${VCPKG_DEFAULT_TRIPLET}" && \

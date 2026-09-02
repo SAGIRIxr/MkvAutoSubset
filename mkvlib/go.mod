@@ -1,4 +1,4 @@
-module github.com/MkvAutoSubset/MkvAutoSubset/mkvlib
+module github.com/guowanghushifu/MkvAutoSubset/mkvlib
 
 go 1.20
 

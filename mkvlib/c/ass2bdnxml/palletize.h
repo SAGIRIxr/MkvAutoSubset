@@ -19,8 +19,15 @@
 #ifndef QUANTIZE_H
 #define QUANTIZE_H
 
+#include <stdint.h>
+#include "auto_split.h"
+
 /* Return malloced palette and overwrite im with 8bpp data */
 uint32_t *palletize(uint8_t *im, int w, int h);
 
-#endif
+/* Return malloced palette and write only the cropped regions as 8bpp data. */
+uint32_t *palletize_crops(const uint8_t *image, uint8_t *indexed,
+                          int w, int h, int num_crop,
+                          const crop_t *crops);
 
+#endif

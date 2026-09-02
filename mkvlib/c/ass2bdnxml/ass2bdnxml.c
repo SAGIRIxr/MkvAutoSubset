@@ -363,7 +363,7 @@ void zero_transparent (stream_info_t *s_info, char *img)
     while (im < max)
     {
         if (!im[3])
-            *(uint32_t *)img = 0;
+            *(uint32_t *)im = 0;
         im += 4;
     }
 }
@@ -728,6 +728,7 @@ int app (int argc, char *argv[])
     char *stricter_string = "0";
     char *count_string = "2147483647";
     char *in_img = NULL, *old_img = NULL, *tmp = NULL, *out_buf = NULL;
+    uint8_t *indexed_img = NULL;
     char *intc_buf = NULL, *outtc_buf = NULL;
     char *drop_frame = NULL;
     char png_dir[MAX_PATH + 1] = {0};
@@ -1014,6 +1015,8 @@ int app (int argc, char *argv[])
     in_img  = calloc(s_info->i_width * s_info->i_height * 4 + 16 * 2, sizeof(char)); /* allocate + 16 for alignment, and + n * 16 for over read/write */
     old_img = calloc(s_info->i_width * s_info->i_height * 4 + 16 * 2, sizeof(char)); /* see above */
     out_buf = calloc(s_info->i_width * s_info->i_height * 4 + 16 * 2, sizeof(char));
+    if (pal_png || sup_output)
+        indexed_img = calloc(s_info->i_width * s_info->i_height, sizeof(uint8_t));
 
     /* Check minimum size */
     if (s_info->i_width < 8 || s_info->i_height < 8)
@@ -1113,7 +1116,7 @@ int app (int argc, char *argv[])
             if (sup_output)
             {
                 assert(pal != NULL);
-                write_sup_wrapper(sw, (uint8_t *)out_buf, n_crop, crops, pal, start_frame + to, i + to, split_at, min_split, stricter);
+                write_sup_wrapper(sw, indexed_img, n_crop, crops, pal, start_frame + to, i + to, split_at, min_split, stricter);
                 if (!xml_output)
                     free(pal);
                 pal = NULL;
@@ -1150,11 +1153,14 @@ int app (int argc, char *argv[])
         if ((buffer_opt || autocrop) && even_y)
             enforce_even_y(crops, n_crop);
         if ((pal_png || sup_output) && pal == NULL)
-            pal = palletize(out_buf, s_info->i_width, s_info->i_height);
+            pal = palletize_crops((uint8_t *)out_buf, indexed_img,
+                                  s_info->i_width, s_info->i_height,
+                                  n_crop, crops);
         if (xml_output)
             for (j = 0; j < n_crop; j++)
             {
-                if (!write_png(png_dir, start_frame, (uint8_t *)out_buf, s_info->i_width, s_info->i_height, j, pal, crops[j])) {
+                uint8_t *png_image = pal == NULL ? (uint8_t *)out_buf : indexed_img;
+                if (!write_png(png_dir, start_frame, png_image, s_info->i_width, s_info->i_height, j, pal, crops[j])) {
                     return 1;
                 }
             }
@@ -1179,7 +1185,7 @@ int app (int argc, char *argv[])
         if (sup_output)
         {
             assert(pal != NULL);
-            write_sup_wrapper(sw, (uint8_t *)out_buf, n_crop, crops, pal, start_frame + to, i - 1 + to, split_at, min_split, stricter);
+            write_sup_wrapper(sw, indexed_img, n_crop, crops, pal, start_frame + to, i - 1 + to, split_at, min_split, stricter);
             if (!xml_output)
                 free(pal);
             pal = NULL;
@@ -1290,6 +1296,7 @@ int app (int argc, char *argv[])
     }
 
     /* Cleanup */
+    free(indexed_img);
     close_file_ass(ass_context);
 
     return 0;

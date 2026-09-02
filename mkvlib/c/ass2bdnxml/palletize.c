@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "abstract_lists.h"
+#include "palletize.h"
 
 #define LEVELS 5
 #define COLORS 254 /* One reserved for 100% transparent */
@@ -288,25 +289,34 @@ static void get_palette (quantizer_t *q, uint32_t pal[COLORS + 1])
 		pal[index] = 0xc0decafe;
 }
 
-uint32_t *palletize (uint8_t *im, int w, int h)
+uint32_t *palletize_crops(const uint8_t *image, uint8_t *indexed,
+                          int w, int h, int num_crop,
+                          const crop_t *crops)
 {
 	uint32_t *pal = calloc(256, sizeof(uint32_t));
-	uint32_t *i = (uint32_t *)im;
+	const uint32_t *pixels = (const uint32_t *)image;
 	quantizer_t *q = new_quantizer();
-	int x, y;
+	int crop, x, y;
 
-	for (y = 0; y < h; y++)
-		for (x = 0; x < w; x++)
-			insert_color(q, i[x + y * w]);
+	for (crop = 0; crop < num_crop; crop++)
+		for (y = MAX(0, crops[crop].y); y < MIN(h, crops[crop].y + crops[crop].h); y++)
+			for (x = MAX(0, crops[crop].x); x < MIN(w, crops[crop].x + crops[crop].w); x++)
+				insert_color(q, pixels[x + y * w]);
 
 	get_palette(q, pal);
 
-	for (y = 0; y < h; y++)
-		for (x = 0; x < w; x++)
-			im[x + y * w] = get_color_index(q, i[x + y * w]);
+	for (crop = 0; crop < num_crop; crop++)
+		for (y = MAX(0, crops[crop].y); y < MIN(h, crops[crop].y + crops[crop].h); y++)
+			for (x = MAX(0, crops[crop].x); x < MIN(w, crops[crop].x + crops[crop].w); x++)
+				indexed[x + y * w] = get_color_index(q, pixels[x + y * w]);
 
 	destroy_quantizer(q);
 
 	return pal;
 }
 
+uint32_t *palletize (uint8_t *im, int w, int h)
+{
+	crop_t crop = {0, 0, w, h};
+	return palletize_crops(im, im, w, h, 1, &crop);
+}

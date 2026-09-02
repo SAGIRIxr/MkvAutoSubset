@@ -10,8 +10,8 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/MkvAutoSubset/MkvAutoSubset/mkvlib"
 	"github.com/fatih/color"
-	"github.com/guowanghushifu/MkvAutoSubset/mkvlib"
 	"github.com/mattn/go-colorable"
 	"github.com/spf13/cobra"
 )

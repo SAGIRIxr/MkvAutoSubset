@@ -42,7 +42,7 @@ int main(void)
     assert(fwrite(ass, strlen(ass), 1, ass_fh) == 1);
     assert(fclose(ass_fh) == 0);
 
-    assert(!ass2pgs(ass_path, "2147483647*2147483647", "24", ".", sup_path));
+    assert(!ass2pgs(ass_path, "65535*8193", "24", ".", sup_path));
 
     assert(unlink(ass_path) == 0);
     assert(unlink(sup_path) == 0);

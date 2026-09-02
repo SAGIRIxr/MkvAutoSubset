@@ -127,6 +127,28 @@ typedef struct {
     int i_fps_num;
 } stream_info_t;
 
+bool calculate_image_buffer_sizes(int width, int height,
+                                  size_t *pixel_count,
+                                  size_t *rgba_buffer_size)
+{
+    size_t pixels;
+
+    if (pixel_count == NULL || rgba_buffer_size == NULL ||
+        width < 8 || height < 8 ||
+        width > UINT16_MAX || height > UINT16_MAX)
+    {
+        return false;
+    }
+
+    pixels = (size_t)width * (size_t)height;
+    if (pixels > INT_MAX / 4)
+        return false;
+
+    *pixel_count = pixels;
+    *rgba_buffer_size = pixels * 4 + 16 * 2;
+    return true;
+}
+
 void msg_callback(int level, const char *fmt, va_list va, void *data)
 {
     if (level > (intptr_t)data)
@@ -1005,17 +1027,15 @@ int app (int argc, char *argv[])
         }
     }
 
+    size_t pixel_count;
+    size_t rgba_buffer_size;
+
     /* Validate dimensions before passing them to libass or sizing buffers. */
-    if (s_info->i_width < 8 || s_info->i_height < 8 ||
-        s_info->i_width > UINT16_MAX || s_info->i_height > UINT16_MAX ||
-        (size_t)s_info->i_width > (SIZE_MAX - 16 * 2) /
-                                  (size_t)s_info->i_height / 4)
+    if (!calculate_image_buffer_sizes(s_info->i_width, s_info->i_height,
+                                      &pixel_count, &rgba_buffer_size))
     {
         return 1;
     }
-
-    size_t pixel_count = (size_t)s_info->i_width * (size_t)s_info->i_height;
-    size_t rgba_buffer_size = pixel_count * 4 + 16 * 2;
 
     ass_set_storage_size(ass_context->ass_renderer, s_info->i_width, s_info->i_height);
     ass_set_frame_size(ass_context->ass_renderer, s_info->i_width, s_info->i_height);

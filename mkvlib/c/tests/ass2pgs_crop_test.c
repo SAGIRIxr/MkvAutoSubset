@@ -45,6 +45,9 @@ static void inspect_sup(const char *filename)
     bool saw_pcs = false;
     bool saw_wds = false;
     bool saw_ods = false;
+    uint16_t pcs_x = 0, pcs_y = 0;
+    uint16_t wds_x = 0, wds_y = 0, wds_width = 0, wds_height = 0;
+    uint16_t ods_width = 0, ods_height = 0;
 
     assert(fh != NULL);
     while (fread(header, sizeof(header), 1, fh) == 1) {
@@ -60,18 +63,26 @@ static void inspect_sup(const char *filename)
         if (!saw_pcs && header[10] == 0x16 && length >= 19 && payload[10] > 0) {
             assert(read_be16(payload) == 1920);
             assert(read_be16(payload + 2) == 1080);
-            assert(read_be16(payload + 15) > 0);
-            assert(read_be16(payload + 17) > 0);
+            pcs_x = read_be16(payload + 15);
+            pcs_y = read_be16(payload + 17);
+            assert(pcs_x > 0);
+            assert(pcs_y > 0);
             saw_pcs = true;
         } else if (!saw_wds && header[10] == 0x17 && length >= 10 && payload[0] > 0) {
-            assert(read_be16(payload + 2) > 0);
-            assert(read_be16(payload + 4) > 0);
-            assert(read_be16(payload + 6) < 1920);
-            assert(read_be16(payload + 8) < 1080);
+            wds_x = read_be16(payload + 2);
+            wds_y = read_be16(payload + 4);
+            wds_width = read_be16(payload + 6);
+            wds_height = read_be16(payload + 8);
+            assert(wds_x > 0);
+            assert(wds_y > 0);
+            assert(wds_width < 1920);
+            assert(wds_height < 1080);
             saw_wds = true;
         } else if (!saw_ods && header[10] == 0x15 && length >= 11) {
-            assert(read_be16(payload + 7) < 1920);
-            assert(read_be16(payload + 9) < 1080);
+            ods_width = read_be16(payload + 7);
+            ods_height = read_be16(payload + 9);
+            assert(ods_width < 1920);
+            assert(ods_height < 1080);
             saw_ods = true;
         }
 
@@ -82,6 +93,10 @@ static void inspect_sup(const char *filename)
     assert(saw_pcs);
     assert(saw_wds);
     assert(saw_ods);
+    assert(pcs_x == wds_x);
+    assert(pcs_y == wds_y);
+    assert(ods_width == wds_width);
+    assert(ods_height == wds_height);
 }
 
 int main(void)

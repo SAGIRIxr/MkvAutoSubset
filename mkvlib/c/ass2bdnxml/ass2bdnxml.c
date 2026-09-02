@@ -363,7 +363,7 @@ void zero_transparent (stream_info_t *s_info, char *img)
     while (im < max)
     {
         if (!im[3])
-            *(uint32_t *)im = 0;
+            memset(im, 0, 4);
         im += 4;
     }
 }
@@ -728,6 +728,7 @@ int app (int argc, char *argv[])
     char *stricter_string = "0";
     char *count_string = "2147483647";
     char *in_img = NULL, *old_img = NULL, *tmp = NULL, *out_buf = NULL;
+    char *in_img_raw = NULL, *old_img_raw = NULL, *out_buf_raw = NULL;
     uint8_t *indexed_img = NULL;
     char *intc_buf = NULL, *outtc_buf = NULL;
     char *drop_frame = NULL;
@@ -1004,6 +1005,18 @@ int app (int argc, char *argv[])
         }
     }
 
+    /* Validate dimensions before passing them to libass or sizing buffers. */
+    if (s_info->i_width < 8 || s_info->i_height < 8 ||
+        s_info->i_width > UINT16_MAX || s_info->i_height > UINT16_MAX ||
+        (size_t)s_info->i_width > (SIZE_MAX - 16 * 2) /
+                                  (size_t)s_info->i_height / 4)
+    {
+        return 1;
+    }
+
+    size_t pixel_count = (size_t)s_info->i_width * (size_t)s_info->i_height;
+    size_t rgba_buffer_size = pixel_count * 4 + 16 * 2;
+
     ass_set_storage_size(ass_context->ass_renderer, s_info->i_width, s_info->i_height);
     ass_set_frame_size(ass_context->ass_renderer, s_info->i_width, s_info->i_height);
 
@@ -1012,22 +1025,29 @@ int app (int argc, char *argv[])
 
     ass_set_fonts(ass_context->ass_renderer, NULL, NULL, ASS_FONTPROVIDER_AUTODETECT, NULL, 1);
 
-    in_img  = calloc(s_info->i_width * s_info->i_height * 4 + 16 * 2, sizeof(char)); /* allocate + 16 for alignment, and + n * 16 for over read/write */
-    old_img = calloc(s_info->i_width * s_info->i_height * 4 + 16 * 2, sizeof(char)); /* see above */
-    out_buf = calloc(s_info->i_width * s_info->i_height * 4 + 16 * 2, sizeof(char));
+    in_img_raw  = calloc(rgba_buffer_size, sizeof(char)); /* allocate + 16 for alignment, and + n * 16 for over read/write */
+    old_img_raw = calloc(rgba_buffer_size, sizeof(char)); /* see above */
+    out_buf_raw = calloc(rgba_buffer_size, sizeof(char));
     if (pal_png || sup_output)
-        indexed_img = calloc(s_info->i_width * s_info->i_height, sizeof(uint8_t));
-
-    /* Check minimum size */
-    if (s_info->i_width < 8 || s_info->i_height < 8)
+        indexed_img = calloc(pixel_count, sizeof(uint8_t));
+    if (in_img_raw == NULL || old_img_raw == NULL || out_buf_raw == NULL ||
+        ((pal_png || sup_output) && indexed_img == NULL))
     {
+        free(in_img_raw);
+        free(old_img_raw);
+        free(out_buf_raw);
+        free(indexed_img);
         return 1;
     }
 
+    in_img = in_img_raw;
+    old_img = old_img_raw;
+    out_buf = out_buf_raw;
+
     /* Align buffers */
-    in_img  = in_img + (short)(16 - ((long)in_img % 16));
-    old_img = old_img + (short)(16 - ((long)old_img % 16));
-    out_buf = out_buf + (short)(16 - ((long)out_buf % 16));
+    in_img  += 16 - (uintptr_t)in_img % 16;
+    old_img += 16 - (uintptr_t)old_img % 16;
+    out_buf += 16 - (uintptr_t)out_buf % 16;
 
     /* Set up buffer (non-)optimization */
     buffer_opt = parse_int(buffer_optimize, "buffer-opt", NULL);
@@ -1296,6 +1316,9 @@ int app (int argc, char *argv[])
     }
 
     /* Cleanup */
+    free(in_img_raw);
+    free(old_img_raw);
+    free(out_buf_raw);
     free(indexed_img);
     close_file_ass(ass_context);
 

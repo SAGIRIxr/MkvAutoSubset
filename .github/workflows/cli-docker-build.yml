@@ -1,0 +1,83 @@
+name: Build CLI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - next
+    paths:
+      - ".github/workflows/cli-docker-build.yml"
+      - "mkvlib/**"
+      - "mkvtool/**"
+  pull_request:
+    paths:
+      - ".github/workflows/cli-docker-build.yml"
+      - "mkvlib/**"
+      - "mkvtool/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows amd64 CLI
+            artifact: mkvtool-windows-x64
+            output: mkvtool-windows-x64.exe
+            goos: windows
+            goarch: amd64
+            zig_target: x86_64-windows
+            cc: zig cc -target x86_64-windows
+          - name: Linux amd64 CLI
+            artifact: mkvtool-linux-amd64
+            output: mkvtool-linux-amd64
+            goos: linux
+            goarch: amd64
+            zig_target: x86_64-linux
+            cc: zig cc -target x86_64-linux
+          - name: macOS arm64 CLI
+            artifact: mkvtool-osx-arm64
+            output: mkvtool-osx-arm64
+            goos: darwin
+            goarch: arm64
+            zig_target: aarch64-macos
+            cc: oa64-clang
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build ${{ matrix.artifact }}
+        run: |
+          mkdir -p dist
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "${{ github.workspace }}:/workspace" \
+            -v "${{ github.workspace }}/dist:/dist" \
+            -w /workspace/mkvtool \
+            -e HOME=/tmp \
+            -e GOPATH=/tmp/go \
+            -e GOCACHE=/tmp/go-build \
+            -e GOMODCACHE=/tmp/go-mod \
+            -e CGO_ENABLED=1 \
+            -e GOOS=${{ matrix.goos }} \
+            -e GOARCH=${{ matrix.goarch }} \
+            -e "CC=${{ matrix.cc }}" \
+            -e "CGO_CFLAGS=-O3 -I/deps/${{ matrix.zig_target }}/include -DHB_EXPERIMENTAL_API" \
+            -e "CGO_LDFLAGS=-L/deps/${{ matrix.zig_target }}/lib -lstdc++ -lfribidi -lzlib -lfreetype -lpng -lharfbuzz -lharfbuzz-subset -lass" \
+            -e OUTFILE=${{ matrix.output }} \
+            ac79b0c6/mkvtool-builder:next \
+            sh -c 'go build -mod=mod -ldflags "-s -w" -o "/dist/${OUTFILE}"'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.output }}
+          if-no-files-found: error

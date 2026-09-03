@@ -1126,6 +1126,11 @@ int app (int argc, char *argv[])
         long long ts = (long double)i * s_info->i_fps_den / s_info->i_fps_num * 1000;
 
         ASS_Image *img = ass_render_frame(ass_context->ass_renderer, ass_context->ass, ts, &changed);
+        /* libass guarantees that changed == 0 means the rendered image is
+         * identical to the previous call. Skip all full-frame pixel work. */
+        if ((i != init_frame) && !changed)
+            continue;
+
         memset(in_img, 0, s_info->i_width *s_info->i_height * 4);
         make_sub_img(img, in_img, s_info->i_width);
 
@@ -1145,11 +1150,8 @@ int app (int argc, char *argv[])
                 checked_empty = 1;
         }
 
-        /* Check for duplicate, unless first frame */
-        if ((i != init_frame) && have_line && !changed)
-            continue;
         /* Mark frames that were not used as new image in comparison to have transparent pixels zeroed */
-        else if (!(i && have_line))
+        if (!(i && have_line))
             must_zero = 1;
 
         /* Not a dup, write end-of-line, if we had a line before */

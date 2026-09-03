@@ -25,6 +25,18 @@ trap 'rm -rf -- "$build_dir"' EXIT HUP INT TERM
     -std=c11 \
     -I"$c_dir" \
     -I"$c_dir/ass2bdnxml" \
+    "$test_dir/ass2pgs_skip_unchanged_test.c" \
+    "$c_dir/s.c" \
+    -o "$build_dir/ass2pgs_skip_unchanged_test" \
+    $(pkg-config --cflags --libs libass libpng) \
+    ${LDFLAGS:-}
+
+"$build_dir/ass2pgs_skip_unchanged_test"
+
+"$CC" ${CPPFLAGS:-} ${CFLAGS:-} \
+    -std=c11 \
+    -I"$c_dir" \
+    -I"$c_dir/ass2bdnxml" \
     "$test_dir/image_buffer_sizes_test.c" \
     "$c_dir/ass2pgs.c" \
     "$c_dir/s.c" \

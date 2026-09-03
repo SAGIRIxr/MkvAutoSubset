@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -166,9 +167,12 @@ func copyFileOrDir(src, dst string) error {
 	return copyFolder(src, dst)
 }
 
+var randomMutex sync.Mutex
 var random = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func randomN(n int) int {
+	randomMutex.Lock()
+	defer randomMutex.Unlock()
 	return random.Intn(n)
 }
 

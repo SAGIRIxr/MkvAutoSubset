@@ -123,10 +123,10 @@ func (self *mkvProcessor) DumpMKV(file, output string, subset bool, lcb logCallb
 						if strings.HasSuffix(f, ".ass") {
 							asses = append(asses, f)
 						}
-						if len(asses) > 0 {
-							if !self.ASSFontSubset(asses, "", "", false, lcb) {
-								ec++
-							}
+					}
+					if len(asses) > 0 {
+						if !self.ASSFontSubset(asses, "", "", false, lcb) {
+							ec++
 						}
 					}
 				}

@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,6 +18,41 @@ static void *tracking_memset(void *dest, int value, size_t size)
     if (size == 1920u * 1080u * 4u)
         full_frame_clear_count++;
     return memset(dest, value, size);
+}
+
+static uint32_t read_be32(const uint8_t *p)
+{
+    return ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) |
+           ((uint32_t)p[2] << 8) | p[3];
+}
+
+static uint16_t read_be16(const uint8_t *p)
+{
+    return (uint16_t)((p[0] << 8) | p[1]);
+}
+
+static bool has_expected_end_timestamp(const char *filename)
+{
+    FILE *fh = fopen(filename, "rb");
+    uint8_t header[13];
+    bool found = false;
+
+    if (fh == NULL)
+        return false;
+    while (fread(header, sizeof(header), 1, fh) == 1) {
+        uint16_t length = read_be16(header + 11);
+
+        if (header[0] != 'P' || header[1] != 'G')
+            break;
+        if (header[10] == 0x16 && length == 11) {
+            found = read_be32(header + 2) == 446250;
+            break;
+        }
+        if (fseek(fh, length, SEEK_CUR) != 0)
+            break;
+    }
+    fclose(fh);
+    return found;
 }
 
 int main(void)
@@ -61,6 +97,12 @@ int main(void)
     if (full_frame_clear_count != 1) {
         fprintf(stderr, "expected 1 full-frame clear, got %zu\n",
                 full_frame_clear_count);
+        unlink(ass_path);
+        unlink(sup_path);
+        return 1;
+    }
+    if (!has_expected_end_timestamp(sup_path)) {
+        fprintf(stderr, "unexpected SUP end timestamp\n");
         unlink(ass_path);
         unlink(sup_path);
         return 1;

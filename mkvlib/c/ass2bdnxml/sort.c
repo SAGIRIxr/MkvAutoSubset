@@ -39,7 +39,7 @@ static inline uint32_t depth_log (uint32_t i)
 
 static inline void swap (void **data, uint32_t i, uint32_t j)
 {
-	static void *tmp;
+	void *tmp;
 
 	tmp     = data[i];
 	data[i] = data[j];

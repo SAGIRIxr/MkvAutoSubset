@@ -751,9 +751,11 @@ func (self *assProcessor) createFontsCache(output string) []string {
 	w := func(s, e int) {
 		for i := s; i < e; i++ {
 			go func(x int) {
+				defer wg.Done()
 				_item := fonts[x]
-				m.Lock()
 				c := self.createFontCache(_item)
+				m.Lock()
+				defer m.Unlock()
 				if c != nil {
 					ok++
 					cache = append(cache, *c)
@@ -761,8 +763,6 @@ func (self *assProcessor) createFontsCache(output string) []string {
 				} else {
 					el = append(el, _item)
 				}
-				m.Unlock()
-				wg.Done()
 			}(i)
 		}
 	}

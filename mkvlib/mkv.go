@@ -456,8 +456,8 @@ func (self *mkvProcessor) Ass2Pgs(asses []string, resolution, frameRate, fontsDi
 	for _, item := range asses {
 		_, _, _, _f := splitPath(item)
 		fn := path.Join(output, _f+".pgs")
-		r = self.a2p && c.Ass2Pgs(item, resolution, frameRate, fontsDir, fn)
-		if !r {
+		if ok := self.a2p && c.Ass2Pgs(item, resolution, frameRate, fontsDir, fn); !ok {
+			r = false
 			printLog(lcb, logError, `Failed to Ass2Pgs:"%s"`, fn)
 			_ = os.Remove(fn)
 		}

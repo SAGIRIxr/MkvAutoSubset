@@ -321,7 +321,7 @@ func (self *mkvProcessor) CreateMKVs(vDir, sDir, fDir, tDir, oDir, slang, stitle
 			if !self.ASSFontSubset(asses, fDir, "", false, lcb) {
 				ec++
 			} else {
-				_tracks, _ := findPath(s1, `\.pgs$`)
+				_tracks, _ := findPath(s1, pgsSubtitlePattern)
 				__p := path.Join(s1, "subsetted")
 				attachments = findFonts(__p)
 				tracks, _ = findPath(__p, `\.ass$`)
@@ -393,7 +393,7 @@ func (self *mkvProcessor) MakeMKVs(dir, data, output, slang, stitle string, subs
 				attachments = findFonts(_p)
 			}
 		}
-		subs, _ := findPath(p, `\.(sub)|(pgs)`)
+		subs, _ := findPath(p, muxSubtitlePattern)
 		tracks := append(subs, asses...)
 		if !self.CreateMKV(item, tracks, attachments, fn, slang, stitle, true) {
 			ok = false
@@ -455,7 +455,7 @@ func (self *mkvProcessor) Ass2Pgs(asses []string, resolution, frameRate, fontsDi
 	r := true
 	for _, item := range asses {
 		_, _, _, _f := splitPath(item)
-		fn := path.Join(output, _f+".pgs")
+		fn := pgsOutputPath(output, _f)
 		if ok := self.a2p && c.Ass2Pgs(item, resolution, frameRate, fontsDir, fn); !ok {
 			r = false
 			printLog(lcb, logError, `Failed to Ass2Pgs:"%s"`, fn)

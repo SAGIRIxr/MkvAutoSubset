@@ -2,17 +2,18 @@ package mkvlib
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 const libName = "mkvlib"
-const libVer = "3.1.4"
+const libVer = "3.1.5"
 
 const LibFName = libName + " " + libVer
 
